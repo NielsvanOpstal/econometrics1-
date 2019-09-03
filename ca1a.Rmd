@@ -34,7 +34,11 @@ nhis <- read_dta("nhis2009_subsample_v1112.dta")
 
 ## III
 
-a) Two potential outcomes: 
+a) Two potential outcomes:
+
+Y(0,i) = outcome without insurance
+
+Y(1,i) = outcome with insurance
 
 b)
 It could be that the insurance allows the person to get drugs and treatment and thus the insurance could increase health.
