@@ -1,0 +1,128 @@
+---
+title: "ca2a"
+author: "Niels van Opstal"
+date: "9/3/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## I
+
+```{r}
+#install.packages("jtools")
+#install.packages("huxtable")
+#install.packages("ggstance")
+#install.packages("summarytols")
+#install.packages("pwr")
+#install.packages("knitr")
+#install.packages("lemon")
+```
+
+```{r}
+library(foreign)
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(dplyr)
+library(tinytex)
+library(jtools)
+library(huxtable)
+library(summarytools)
+library(ggstance)
+library(pwr)
+library(knitr)
+library(lemon)
+```
+
+``` {r}
+knit_print.data.frame <- lemon_print
+```
+
+```{r}
+library(haven)
+students <- read_dta("ca2a_2019.dta")
+```
+
+# II
+
+a)Y(0,i) = not exposed to reminder of bycle theft
+  Y(1,i) = epxposed to reminder of bycle theft
+  
+b) the person will might take his/her own experience with byble theft 
+
+# III
+
+```{r}
+summary(students)
+```
+
+```{r}
+summary(students$perception_person_low)
+```
+
+```{r}
+ggplot(students, aes(x=as.factor(perception_person_low)))+
+  geom_histogram(stat="count")+
+  labs(x='perception', y='count', title='Perception bicycle theft risk is low')
+```
+```{r}
+summary(is.na(students$perception_person_low))
+```
+
+## IV
+
+```{r}
+ctable(students$treatment, students$female)
+ctable(students$treatment, students$international)
+ctable(students$treatment, students$moved_notrecent)
+ctable(students$treatment, students$age20)
+```
+```{r}
+t.test(students$female~students$treatment)
+```
+
+## V
+```{r}
+students %>%
+  filter(treatment==0) %>%
+  summarise(mean=mean(perception_person_low), sd=sd(perception_person_low))
+```
+```{r}
+pwr.t.test(n = NULL, d = 0.2, sig.level = 0.05, power = 0.8,
+  type = c("two.sample"), alternative="two.sided")
+```
+## VI
+```{r}
+students_peek <- students %>% group_by(treatment) %>%
+  summarise(perception_person_low_mean=mean(perception_person_low))
+students_peek
+```
+```{r}
+ggplot(students_peek, aes(y=perception_person_low_mean, x=as.factor(treatment))) + geom_bar(stat='identity', fill='darkblue') +       labs(x='Treatment', y='share with low perceived theft risk', title='Having low perceived theft risk by treatment status')
+```
+This suggests that the treatment has a negative direction on perceiving the risk of having your bike stole as low.
+
+b) Perception of bike stolen = alpha + beta * reminder_of_having_bike_stolen + error
+c)
+```{R warning=FALSE}
+reg1 <- lm(perception_person_low ~ treatment, data=students)
+# The Jtools summ function gave a weird error, have to check it later
+summary(reg1, confint=TRUE)
+```
+```{r}
+treatment_effect <- c("Treatment_effect"="treatment")
+plot_summs(reg1, scale = TRUE, coefs = treatment_effect, plot.distributions = TRUE)
+```
+
+d) The treatment does have a significant effect on the outcome variable with p < 0.05. Therefore we can reject the null-hypothesis at the 5% confidence level.i
+
+e) The chance of viewing the risk of your bike being stolen as low decreases by 14.7 percentage points when you are reminded of the last time your bike was stolen previously to being asked to asses the risk of your bike being stolen.
+
+f) Estimated beta / baseline mean of outcome variable * 100 % = -0.147 / 0.4 * 100 % = 36.75%. This is a rather large effect.
+
+g)
+
+h) This could lead to bias due to at least two reasons. One is that if a person is treated but didn't have his bike stolen there really isn't a treatment due to which the treatment effect could be underestimated. Another possible reason for even more bias is that if a person never has his bike stolen and is treated, the treatment might even work the other way around in that a person is reminded that his bike has never been stolen and he may therefore feel more safe. This might lead to an even bigger underestimation of the treatment effect.
